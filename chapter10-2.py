@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.covariance import MinCovDet
 from sklearn.linear_model import LinearRegression
 
 df = pd.read_csv('./datafiles/bike.tsv', sep='\t')
@@ -37,6 +38,25 @@ non_data = iris_df.loc[condition]
 
 x = non_data.loc[:, 'がく片幅':'花弁幅']
 pred = model.predict(x)
-print(pred)
+# print(pred)
 
 iris_df.loc[condition, 'がく片長さ'] = pred
+
+# ---------------------------
+
+df4 = df3.loc[:, 'atemp':'windspeed']
+df4 = df4.dropna()
+mcd = MinCovDet(random_state=0, support_fraction=0.7)
+mcd.fit(df4)
+
+distance = mcd.mahalanobis(df4)
+distance = pd.Series(distance)
+tmp = distance.describe()
+# print(tmp)
+
+iqr = tmp['75%'] - tmp['25%']
+jougen = 1.5 * iqr + tmp['75%']
+kagen = tmp['25%'] - 1.5 * iqr
+ 
+outliner = distance[ (distance > jougen) | (distance < kagen)]
+print(outliner)
